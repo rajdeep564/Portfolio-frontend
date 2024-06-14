@@ -7,6 +7,7 @@ import { EarthCanvas } from './canvas';
 import { SectionWrapper } from '../hoc';
 import { slideIn } from '../motion';
 import PopupMessage from './popup';
+import { git, insta, lin } from '../assets';
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -57,9 +58,9 @@ const Contact = () => {
         <p className={styles.sectionSubText}>Get in touch</p>
         <h3 className={styles.sectionHeadText}>Contact Me</h3>
         <motion.div className='flex'>
-          <a href="https://www.instagram.com/rajdeep._08"><img src="/src/assets/instagram.png" alt="Instagram Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
-          <a href="https://github.com/rajdeep564"><img src="/src/assets/github1.png" alt="github Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
-          <a href="https://www.linkedin.com/in/rajdeep-singh-chavda-728743256/"><img src="/src/assets/linkedin.png" alt="linkedin Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
+          <a href="https://www.instagram.com/rajdeep._08"><img src = {insta} alt="Instagram Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
+          <a href="https://github.com/rajdeep564"><img src = {git} alt="github Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
+          <a href="https://www.linkedin.com/in/rajdeep-singh-chavda-728743256/"><img src= {lin} alt="linkedin Icon" className="mt-4 mr-4 w-12 h-12 object-contain" /></a>
         </motion.div>
 
         <form

@@ -43,7 +43,9 @@ import pythonl from "./pythonl.png"
 import uil from "./ui-design.png"
 import contentl from "./writer.png" 
 
-
+import insta from "./instagram.png";
+import lin from "./linkedin.png";
+import git from "./github1.png"
 export {
   rlogo,
   logo,
@@ -75,4 +77,7 @@ export {
   pythonl,
   uil,
   contentl,
+  insta,
+  lin,
+  git
 };
