@@ -1,70 +1,68 @@
-import {Suspense,useEffect,useState} from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls,Preload,useGLTF  } from '@react-three/drei'
-import CanvasLoader from "../Loader"
-const Computers = ({isMobile}) => {
+import { Suspense, useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
+import CanvasLoader from "../Loader";
 
-  const computer = useGLTF('./desktop_pc/scene.glb')
+const Computers = ({ isMobile }) => {
+  const computer = useGLTF('./desktop_pc/scene.glb');
   return (
     <mesh>
-    <hemisphereLight intensity={2}  groundColor="black" />
-    <pointLight intensity={8} />
-    <spotLight 
-      position={[-3, 5, 1]}
-      angle={1}
-      penumbra={2}
-      intensity={600}
-      castShadow
-      shadow-mapSize={1024}
-    />
-    <primitive
-      object={computer.scene}
-      scale={isMobile? 0.7 :0.75}
-      position={isMobile ? [0,-3.3,-1.5] :[0, -3.25, -1.5]}
-      rotation={[-0.01, -0.2, -0.1]}
-    />
-  </mesh>
-  )
-}
+      <hemisphereLight intensity={2} groundColor="black" />
+      <pointLight intensity={8} />
+      <spotLight 
+        position={[-3, 5, 1]}
+        angle={1}
+        penumbra={2}
+        intensity={600}
+        castShadow
+        shadow-mapSize={1024}
+      />
+      <primitive
+        object={computer.scene}
+        scale={isMobile ? 0.7 : 0.75}
+        position={isMobile ? [0, -3.3, -1.5] : [0, -3.25, -1.5]}
+        rotation={[-0.01, -0.2, -0.1]}
+      />
+    </mesh>
+  );
+};
 
-const ComputersCanvas = () =>{
-  const [isMobile,setIsMobile] = useState(false);
+const ComputersCanvas = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width:500px)');
     setIsMobile(mediaQuery.matches);
 
-    const handleMediaQueryChange = (event) =>{
+    const handleMediaQueryChange = (event) => {
       setIsMobile(event.matches);
-    }
+    };
 
-    mediaQuery.addEventListener('change',handleMediaQueryChange);
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
 
-    return () =>{
-      mediaQuery.removeEventListener('change',handleMediaQueryChange)
-    }
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaQueryChange);
+    };
+  }, []);
 
-  },[])
   return (
     <Canvas
-    frameloop='demand'
-    shadows
-    camera={{position : [20,3,5],fov:25}}
-    gl={{preserveDrawingBuffer:true}}
+      frameloop='demand'
+      shadows
+      camera={{ position: [20, 3, 5], fov: 25 }}
+      gl={{ preserveDrawingBuffer: true }}
     >
-      <Suspense fallback = {<CanvasLoader/>}>
+      <Suspense fallback={<CanvasLoader />}>
         <OrbitControls 
-        
-        enableZoom = {false}
-        maxPolarAngle={Math.PI / 2}
-        minPolarAngle={Math.PI / 2}/>
-        <Computers isMobile = {isMobile}/>
-
+          enableZoom={false}
+          maxPolarAngle={Math.PI / 2}
+          minPolarAngle={Math.PI / 2}
+        />
+        <Computers isMobile={isMobile} />
       </Suspense>
-      <Preload all/>
-
+      <Preload all />
     </Canvas>
-  )
-}
+  );
+};
 
 export default ComputersCanvas;

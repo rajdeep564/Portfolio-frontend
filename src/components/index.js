@@ -8,6 +8,7 @@ import Works from './Works';
 import Feedbacks from './Feedbacks';
 import Contact from './Contact';
 import PopupMessage from './popup';
+import Webloader from './WebLoader';
 
 export {
   Hero,
@@ -22,5 +23,6 @@ export {
   BallCanvas, 
   ComputersCanvas, 
   StarsCanvas,
-  PopupMessage
+  PopupMessage,
+ Webloader,
 }
