@@ -1,10 +1,21 @@
-import { Suspense, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Preload, useGLTF } from '@react-three/drei';
 import CanvasLoader from "../Loader";
 
 const Computers = ({ isMobile }) => {
-  const computer = useGLTF('./desktop_pc/scene.glb');
+  const computer = useGLTF('./robot_playground/scene.gltf');
+  
+  // Ref for the model to apply animation
+  const modelRef = useRef();
+
+  // Animation using useFrame hook
+  useFrame(() => {
+    if (modelRef.current) {
+      modelRef.current.rotation.y += 0.010; // Adjust the rotation speed as needed
+    }
+  });
+
   return (
     <mesh>
       <hemisphereLight intensity={2} groundColor="black" />
@@ -18,9 +29,10 @@ const Computers = ({ isMobile }) => {
         shadow-mapSize={1024}
       />
       <primitive
+        ref={modelRef} // Assign ref to the model
         object={computer.scene}
-        scale={isMobile ? 0.7 : 0.75}
-        position={isMobile ? [0, -3.3, -1.5] : [0, -3.25, -1.5]}
+        scale={isMobile ? 2 : 2}
+        position={isMobile ? [0, -3.3, 0] : [0, -3.25, 0]}
         rotation={[-0.01, -0.2, -0.1]}
       />
     </mesh>
@@ -47,7 +59,7 @@ const ComputersCanvas = () => {
 
   return (
     <Canvas
-      frameloop='demand'
+      frameloop='always' // Ensure continuous rendering for smooth animation
       shadows
       camera={{ position: [20, 3, 5], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}

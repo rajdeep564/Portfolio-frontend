@@ -2,6 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { styles } from '../styles'
 import { ComputersCanvas } from './canvas'
+import SplineCanvas from './canvas/SplineCanvas'
 
 const Hero = () => {
   return (
@@ -16,7 +17,8 @@ const Hero = () => {
           <p className={`${styles.heroSubText} mt-2 text-white-100`}>Creating cool websites with code and creativity, <br className='sm:block hidden' /> one pixel at a time</p>
         </div>
       </div>
-      <ComputersCanvas />
+      <ComputersCanvas/>
+      {/* <ComputersCanvas /> */}
       <div className='absolute xs:bottom-4 bottom-3 w-full flex justify-center items-center'>
         <a href="#contact">
           <div className='xs:w-[30px] w-[26px] xs:h-[55px] h-[50px] rounded-3xl border-4 border-white flex justify-center items-start p-1'>
