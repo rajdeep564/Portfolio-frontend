@@ -1,8 +1,10 @@
  
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { DATA } from "@/data/resume";
 
-export const runtime = "edge";
+const publicFile = (path: string) => readFile(join(process.cwd(), "public", path));
 
 export const alt = DATA.name;
 export const size = {
@@ -14,12 +16,8 @@ export const contentType = "image/png";
 const getFontData = async () => {
     try {
         const [cabinetGrotesk, clashDisplay] = await Promise.all([
-            fetch(
-                new URL("../../public/fonts/CabinetGrotesk-Medium.ttf", import.meta.url)
-            ).then((res) => res.arrayBuffer()),
-            fetch(
-                new URL("../../public/fonts/ClashDisplay-Semibold.ttf", import.meta.url)
-            ).then((res) => res.arrayBuffer()),
+            publicFile("fonts/CabinetGrotesk-Medium.ttf"),
+            publicFile("fonts/ClashDisplay-Semibold.ttf"),
         ]);
         return { cabinetGrotesk, clashDisplay };
     } catch (error) {
@@ -108,12 +106,8 @@ const styles = {
 export default async function Image() {
     try {
         const fontData = await getFontData();
-        const photo = await fetch(
-            new URL("../../public/me.jpg", import.meta.url)
-        ).then((res) => res.arrayBuffer());
-        const imageUrl = `data:image/jpeg;base64,${btoa(
-            String.fromCharCode(...new Uint8Array(photo))
-        )}`;
+        const photo = await publicFile("me.jpg");
+        const imageUrl = `data:image/jpeg;base64,${photo.toString("base64")}`;
 
         return new ImageResponse(
             (
