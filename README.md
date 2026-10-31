@@ -1,8 +1,24 @@
-# React + Vite
+# Rajdeep Sinh Chavda - Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Personal portfolio built with Next.js, Tailwind CSS and shadcn/ui, based on the
+MIT-licensed [Magic UI portfolio template](https://github.com/magicuidesign/portfolio).
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+npm run dev
+```
+
+All site content lives in `src/data/resume.tsx`. The downloadable resume is
+`public/Rajdeep-Sinh-Chavda-Resume.pdf`.
+
+## Contact form
+
+The form sends mail through [Web3Forms](https://web3forms.com) (free, no backend).
+
+1. Enter your email on web3forms.com to receive an access key.
+2. Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_WEB3FORMS_KEY`.
+3. Add the same variable in your hosting provider's settings.
+
+Until a key is set, the form opens the visitor's mail app instead.
