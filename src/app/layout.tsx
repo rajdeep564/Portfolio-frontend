@@ -64,6 +64,9 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },
+  other: {
+    mochi: "welcome",
+  },
 };
 
 export default function RootLayout({
