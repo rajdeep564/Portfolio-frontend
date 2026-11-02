@@ -73,7 +73,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider delayDuration={0}>
-            <div className="absolute inset-0 top-0 left-0 right-0 h-[40vh] overflow-hidden z-0">
+            <div className="absolute inset-0 top-0 left-0 right-0 h-[40svh] overflow-hidden z-0">
               <FlickeringGrid
                 className="h-full w-full"
                 squareSize={3}

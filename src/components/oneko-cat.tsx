@@ -470,8 +470,8 @@ export default function OnekoCat() {
       if (now - lastFrameAt > FRAME_MS) {
         lastFrameAt = now;
         frame(now);
+        placePanel();
       }
-      placePanel();
       animationId = window.requestAnimationFrame(onAnimationFrame);
     }
 

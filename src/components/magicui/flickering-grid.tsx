@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
+const UPDATE_INTERVAL = 0.1
+
 interface FlickeringGridProps extends React.HTMLAttributes<HTMLDivElement> {
   squareSize?: number
   gridGap?: number
@@ -96,7 +98,7 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
 
   const setupCanvas = useCallback(
     (canvas: HTMLCanvasElement, width: number, height: number) => {
-      const dpr = window.devicePixelRatio || 1
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = width * dpr
       canvas.height = height * dpr
       canvas.style.width = `${width}px`
@@ -114,45 +116,58 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
     [squareSize, gridGap, maxOpacity]
   )
 
+  const drawSquare = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      col: number,
+      row: number,
+      opacity: number,
+      dpr: number
+    ) => {
+      const x = col * (squareSize + gridGap) * dpr
+      const y = row * (squareSize + gridGap) * dpr
+      const size = squareSize * dpr
+      ctx.clearRect(x, y, size, size)
+      ctx.fillStyle = `${memoizedColor}${opacity})`
+      ctx.fillRect(x, y, size, size)
+    },
+    [memoizedColor, squareSize, gridGap]
+  )
+
+  // Only the squares that flicker are redrawn, so the cost stays low on large screens.
   const updateSquares = useCallback(
-    (squares: Float32Array, deltaTime: number) => {
-      for (let i = 0; i < squares.length; i++) {
-        if (Math.random() < flickerChance * deltaTime) {
-          squares[i] = Math.random() * maxOpacity
-        }
+    (
+      ctx: CanvasRenderingContext2D,
+      rows: number,
+      squares: Float32Array,
+      dpr: number,
+      deltaTime: number
+    ) => {
+      const changes = Math.ceil(squares.length * flickerChance * deltaTime)
+      for (let n = 0; n < changes; n++) {
+        const index = Math.floor(Math.random() * squares.length)
+        squares[index] = Math.random() * maxOpacity
+        drawSquare(ctx, Math.floor(index / rows), index % rows, squares[index], dpr)
       }
     },
-    [flickerChance, maxOpacity]
+    [drawSquare, flickerChance, maxOpacity]
   )
 
   const drawGrid = useCallback(
     (
       ctx: CanvasRenderingContext2D,
-      width: number,
-      height: number,
       cols: number,
       rows: number,
       squares: Float32Array,
       dpr: number
     ) => {
-      ctx.clearRect(0, 0, width, height)
-      ctx.fillStyle = "transparent"
-      ctx.fillRect(0, 0, width, height)
-
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
-          const opacity = squares[i * rows + j]
-          ctx.fillStyle = `${memoizedColor}${opacity})`
-          ctx.fillRect(
-            i * (squareSize + gridGap) * dpr,
-            j * (squareSize + gridGap) * dpr,
-            squareSize * dpr,
-            squareSize * dpr
-          )
+          drawSquare(ctx, i, j, squares[i * rows + j], dpr)
         }
       }
     },
-    [memoizedColor, squareSize, gridGap]
+    [drawSquare]
   )
 
   useEffect(() => {
@@ -171,27 +186,26 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
       const newHeight = height || container.clientHeight
       setCanvasSize({ width: newWidth, height: newHeight })
       gridParams = setupCanvas(canvas, newWidth, newHeight)
+      drawGrid(ctx, gridParams.cols, gridParams.rows, gridParams.squares, gridParams.dpr)
     }
 
     updateCanvasSize()
 
-    let lastTime = 0
+    let lastTime = performance.now()
     const animate = (time: number) => {
       if (!isInView) return
 
       const deltaTime = (time - lastTime) / 1000
-      lastTime = time
-
-      updateSquares(gridParams.squares, deltaTime)
-      drawGrid(
-        ctx,
-        canvas.width,
-        canvas.height,
-        gridParams.cols,
-        gridParams.rows,
-        gridParams.squares,
-        gridParams.dpr
-      )
+      if (deltaTime >= UPDATE_INTERVAL) {
+        lastTime = time
+        updateSquares(
+          ctx,
+          gridParams.rows,
+          gridParams.squares,
+          gridParams.dpr,
+          Math.min(deltaTime, 1)
+        )
+      }
       animationFrameId = requestAnimationFrame(animate)
     }
 

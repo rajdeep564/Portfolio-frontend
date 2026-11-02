@@ -413,8 +413,19 @@ function IsometricCubes({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const updateRef = useRef<((delta: number) => void) | null>(null);
+  const onScreenRef = useRef(false);
   const reduceMotion = useReducedMotion();
   const idle = idleRipples && !reduceMotion;
+
+  // Rest the simulation while the grid is scrolled out of view.
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      onScreenRef.current = entry.isIntersecting;
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -440,7 +451,7 @@ function IsometricCubes({
   }, [cellSize, gap, topColor, leftColor, rightColor, amplitude, speed, damping, idle, idleDelay, glowColor, glow]);
 
   useAnimationFrame((_, delta) => {
-    updateRef.current?.(Math.min(delta / 1000, 0.1));
+    if (onScreenRef.current) updateRef.current?.(Math.min(delta / 1000, 0.1));
   });
 
   return (
