@@ -579,7 +579,7 @@ export default function OnekoCat() {
         <div
           ref={spriteRef}
           className="size-8 [image-rendering:pixelated]"
-          style={{ backgroundImage: "url(/oneko.gif)" }}
+          style={{ backgroundImage: "url(/mochi-sprite.png)" }}
         />
       </button>
 
