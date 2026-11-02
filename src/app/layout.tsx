@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import OnekoCat from "@/components/oneko-cat";
+import StructuredData from "@/components/structured-data";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
@@ -24,17 +25,25 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(DATA.url),
   title: {
-    default: DATA.name,
+    default: DATA.seo.title,
     template: `%s | ${DATA.name}`,
   },
-  description: DATA.description,
+  description: DATA.seo.description,
+  keywords: [...DATA.seo.keywords],
+  authors: [{ name: DATA.name, url: DATA.url }],
+  creator: DATA.name,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: `${DATA.name}`,
-    description: DATA.description,
-    url: DATA.url,
-    siteName: `${DATA.name}`,
+    title: DATA.seo.title,
+    description: DATA.seo.description,
+    url: "/",
+    siteName: DATA.name,
     locale: "en_US",
-    type: "website",
+    type: "profile",
+    firstName: "Rajdeep Sinh",
+    lastName: "Chavda",
   },
   robots: {
     index: true,
@@ -48,12 +57,12 @@ export const metadata: Metadata = {
     },
   },
   twitter: {
-    title: `${DATA.name}`,
+    title: DATA.seo.title,
+    description: DATA.seo.description,
     card: "summary_large_image",
   },
   verification: {
-    google: "",
-    yandex: "",
+    google: process.env.GOOGLE_SITE_VERIFICATION,
   },
 };
 
@@ -71,6 +80,7 @@ export default function RootLayout({
           geistMono.variable
         )}
       >
+        <StructuredData />
         <ThemeProvider attribute="class" defaultTheme="light">
           <TooltipProvider delayDuration={0}>
             <div className="absolute inset-0 top-0 left-0 right-0 h-[40svh] overflow-hidden z-0">

@@ -6,7 +6,7 @@ import { DATA } from "@/data/resume";
 
 const publicFile = (path: string) => readFile(join(process.cwd(), "public", path));
 
-export const alt = DATA.name;
+export const alt = `${DATA.name}, ${DATA.role}`;
 export const size = {
     width: 1200,
     height: 630,

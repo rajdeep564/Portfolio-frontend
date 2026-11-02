@@ -24,6 +24,7 @@ export default function Page() {
           <div className="gap-6 flex flex-col md:flex-row justify-between">
             <div className="gap-2 flex flex-col order-2 md:order-1">
               <BlurFadeText
+                as="h1"
                 delay={BLUR_FADE_DELAY}
                 className="text-3xl font-semibold tracking-tighter sm:text-4xl"
                 yOffset={8}
@@ -37,7 +38,7 @@ export default function Page() {
             </div>
             <BlurFade delay={BLUR_FADE_DELAY} className="order-1 md:order-2">
               <Avatar className="size-40 border rounded-2xl ring-2 ring-primary/40 ring-offset-2 ring-offset-background">
-                <AvatarImage alt={DATA.name} src={DATA.avatarUrl} />
+                <AvatarImage alt={`${DATA.name}, ${DATA.role}`} src={DATA.avatarUrl} />
                 <AvatarFallback className="text-xl font-semibold">
                   {DATA.initials}
                 </AvatarFallback>
