@@ -595,7 +595,7 @@ export default function OnekoCat() {
           <div className="pointer-events-auto flex flex-col gap-2 rounded-xl border bg-card p-3 text-card-foreground shadow-md">
             <div className="flex items-center justify-between gap-3 text-xs">
               <span className="font-semibold">{PET_NAME}</span>
-              <span className="flex items-center gap-1 text-primary">
+              <span className="flex items-center gap-1 text-red-500">
                 <Heart className="size-3 fill-current" aria-hidden />
                 {love}
               </span>
@@ -655,7 +655,7 @@ export default function OnekoCat() {
         {hearts.map((heart) => (
           <Heart
             key={heart.id}
-            className="pet-heart absolute size-4 fill-primary text-primary"
+            className="pet-heart absolute size-4 fill-red-500 text-red-500"
             style={{ left: heart.x, top: heart.y, animationDelay: `${heart.delay}ms` }}
             onAnimationEnd={() =>
               setHearts((current) => current.filter(({ id }) => id !== heart.id))
