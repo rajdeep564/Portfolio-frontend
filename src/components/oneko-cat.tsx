@@ -145,6 +145,7 @@ export default function OnekoCat() {
     let idleAnimation: "sleeping" | "scratchSelf" | null = null;
     let idleAnimationFrame = 0;
     let lastPointerAt = -Infinity;
+    let lastPointerType = "mouse";
     let lastFrameAt = 0;
     let lastPhotoAt = performance.now();
     let nextThoughtAt = performance.now() + THOUGHT_INTERVAL_MS;
@@ -475,25 +476,38 @@ export default function OnekoCat() {
     }
 
     function onPointerMove(event: PointerEvent) {
+      if (event.pointerType === "touch") return;
+      followPointer(event);
+    }
+
+    function followPointer({ clientX, clientY }: MouseEvent) {
       if (throwsLeft > 0 || isMenuOpen || currentMode !== "active") return;
-      targetX = event.clientX;
-      targetY = event.clientY;
+      targetX = clientX;
+      targetY = clientY;
       lastPointerAt = performance.now();
     }
 
-    function onPointerDown(event: PointerEvent) {
-      if (isPetElement(event.target)) return;
+    function onPress(event: MouseEvent) {
       if (isMenuOpen) closeMenu();
       if (throwsLeft > 0) {
         throwBall(event.clientX, event.clientY);
         return;
       }
-      onPointerMove(event);
+      followPointer(event);
+    }
+
+    function onPointerDown(event: PointerEvent) {
+      lastPointerType = event.pointerType;
+      // A touch may be the start of a scroll, so wait for its click.
+      if (event.pointerType !== "touch" && !isPetElement(event.target)) onPress(event);
     }
 
     // A throw should not also follow a link under the pointer.
     function onClickCapture(event: MouseEvent) {
-      if (throwsLeft > 0 && !isPetElement(event.target)) {
+      if (isPetElement(event.target)) return;
+      const playing = throwsLeft > 0;
+      if (lastPointerType === "touch") onPress(event);
+      if (playing) {
         event.preventDefault();
         event.stopPropagation();
       }
