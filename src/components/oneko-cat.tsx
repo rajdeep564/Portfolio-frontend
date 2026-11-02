@@ -21,9 +21,33 @@ const PHOTO_COOLDOWN_MS = 30000;
 const THOUGHT_INTERVAL_MS = 40000;
 const PLAY_TIMEOUT_MS = 12000;
 const PLAY_THROWS = 4;
+const EAT_MS = 2200;
+const MOUTH_OFFSET = 3;
+const BALL_SIZE = 18;
+const BALL_RADIUS = BALL_SIZE / 2;
+const BALL_REACH = 22;
+const BATS_PER_THROW = 2;
+const BAT_MS = 550;
+const NOTICE_MS = 350;
+const GRAVITY = 1500;
+const BOUNCE = 0.62;
+const BOUNCE_GRIP = 0.86;
+const MIN_BOUNCE_SPEED = 70;
+const ROLL_FRICTION = 2.6;
+const AIR_DRAG = 0.15;
+const WALL_BOUNCE = 0.6;
+const THROW_LIFT = 430;
+const THROW_SECONDS = 1.15;
+const MAX_STEP_SECONDS = 0.033;
+const ADOPT_URL = "https://rajdeep564.github.io/wandering-mochi/#adopt";
 
 const SPRITES: Record<string, [number, number][]> = {
   idle: [[-3, -3]],
+  eating: [[-3, -2], [-3, -3]],
+  batN: [[0, 0], [0, -1]],
+  batE: [[-2, -2], [-2, -3]],
+  batS: [[-7, -1], [-6, -2]],
+  batW: [[-4, 0], [-4, -1]],
   alert: [[-7, -3]],
   scratchSelf: [[-5, 0], [-6, 0], [-7, 0]],
   tired: [[-3, -2]],
@@ -53,6 +77,16 @@ type Actions = Record<Action, () => void>;
 type PetMode = "active" | "sitting" | "hidden";
 type SavedMode = { mode: PetMode; x: number; y: number };
 type Item = { kind: "fish" | "ball"; x: number; y: number };
+type BallBody = {
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  spin: number;
+  squash: number;
+};
 type FloatingHeart = { id: number; x: number; y: number; delay: number };
 
 function pick(lines: string[]) {
@@ -108,6 +142,7 @@ export default function OnekoCat() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const spriteRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const ballRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<Actions | null>(null);
   const toggleMenuRef = useRef<(() => void) | null>(null);
 
@@ -154,8 +189,16 @@ export default function OnekoCat() {
     let isMenuOpen = false;
     let isInviting = false;
     let touched = storedLove !== null;
-    let goal: { x: number; y: number; onArrive: (now: number) => void } | null = null;
-    let pose: { name: string; until: number } | null = null;
+    let goal: {
+      x: number;
+      y: number;
+      track?: () => void;
+      onArrive: (now: number) => void;
+    } | null = null;
+    let pose: { name: string; until: number; onEnd?: () => void } | null = null;
+    let body: BallBody = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, spin: 0, squash: 0 };
+    let lastStepAt = 0;
+    let batsLeft = 0;
     let throwsLeft = 0;
     let playDeadline = 0;
     let speechTimer: number | undefined;
@@ -232,26 +275,128 @@ export default function OnekoCat() {
       setItem(null);
     }
 
-    function throwBall(ballX: number, ballY: number) {
+    function showBall(ballX: number, ballY: number) {
+      body = { x: ballX, y: ballY, z: 0, vx: 0, vy: 0, vz: 0, spin: 0, squash: 0 };
       setItem({ kind: "ball", x: ballX, y: ballY });
-      playDeadline = performance.now() + PLAY_TIMEOUT_MS;
-      goal = {
-        x: ballX,
-        y: ballY,
-        onArrive: (now) => {
-          throwsLeft -= 1;
-          playDeadline = now + PLAY_TIMEOUT_MS;
-          if (throwsLeft > 0) {
-            say("Got it! Throw again!");
-            return;
+    }
+
+    function drawBall(element: HTMLDivElement) {
+      const [shadow, hop] = Array.from(element.children) as HTMLElement[];
+      const skin = hop.firstElementChild as HTMLElement;
+      element.style.transform = `translate(${body.x - BALL_RADIUS}px, ${body.y - BALL_RADIUS}px)`;
+      hop.style.transform = `translateY(${-body.z}px) scale(${1 + body.squash}, ${1 - body.squash})`;
+      skin.style.transform = `rotate(${body.spin}rad)`;
+      shadow.style.transform = `scale(${1 - Math.min(body.z / 140, 0.6)})`;
+      shadow.style.opacity = String(1 - Math.min(body.z / 200, 0.65));
+    }
+
+    function bounceOffWalls() {
+      const maxX = window.innerWidth - BALL_RADIUS;
+      const maxY = window.innerHeight - BALL_RADIUS;
+      if (body.x < BALL_RADIUS || body.x > maxX) {
+        body.x = Math.min(Math.max(BALL_RADIUS, body.x), maxX);
+        body.vx *= -WALL_BOUNCE;
+      }
+      if (body.y < BALL_RADIUS || body.y > maxY) {
+        body.y = Math.min(Math.max(BALL_RADIUS, body.y), maxY);
+        body.vy *= -WALL_BOUNCE;
+      }
+    }
+
+    // x and y are the ground, and z is the height above it.
+    function stepBall(seconds: number) {
+      body.vz -= GRAVITY * seconds;
+      body.z += body.vz * seconds;
+      if (body.z <= 0) {
+        body.z = 0;
+        if (body.vz < -MIN_BOUNCE_SPEED) {
+          body.squash = Math.min(0.32, -body.vz / 1400);
+          body.vz *= -BOUNCE;
+          body.vx *= BOUNCE_GRIP;
+          body.vy *= BOUNCE_GRIP;
+        } else {
+          body.vz = 0;
+        }
+      }
+      const drag = Math.exp(-(body.z === 0 ? ROLL_FRICTION : AIR_DRAG) * seconds);
+      body.vx *= drag;
+      body.vy *= drag;
+      body.x += body.vx * seconds;
+      body.y += body.vy * seconds;
+      bounceOffWalls();
+      const speed = Math.hypot(body.vx, body.vy);
+      body.spin += ((Math.sign(body.vx) || 1) * (speed * seconds)) / BALL_RADIUS;
+      body.squash *= Math.exp(-14 * seconds);
+    }
+
+    function finishThrow(now: number) {
+      throwsLeft -= 1;
+      playDeadline = now + PLAY_TIMEOUT_MS;
+      if (throwsLeft > 0) {
+        say("Got it! Throw again!");
+        return;
+      }
+      endPlay();
+      pose = { name: "scratchSelf", until: now + 1500 };
+      addLove(3);
+      spawnHearts(5);
+      say("That was so fun!");
+    }
+
+    // She stops at the ball's edge so she stays in front of it, not under it.
+    function aimAtBall() {
+      if (!goal) return;
+      const distance = Math.hypot(x - body.x, y - body.y) || 1;
+      goal.x = clampX(body.x + ((x - body.x) / distance) * BALL_REACH);
+      goal.y = clampY(body.y + ((y - body.y) / distance) * BALL_REACH);
+    }
+
+    function chaseBall() {
+      goal = { x, y, track: aimAtBall, onArrive: batBall };
+      aimAtBall();
+    }
+
+    function hitBall() {
+      const angle = Math.atan2(body.y - y, body.x - x) + (Math.random() - 0.5);
+      const speed = 190 + Math.random() * 120;
+      body.vx = Math.cos(angle) * speed;
+      body.vy = Math.sin(angle) * speed;
+      body.vz = 170 + Math.random() * 110;
+    }
+
+    function batBall(now: number) {
+      const toBallX = body.x - x;
+      const toBallY = body.y - y;
+      const horizontal = Math.abs(toBallX) > Math.abs(toBallY);
+      const side = horizontal ? (toBallX > 0 ? "batE" : "batW") : toBallY > 0 ? "batS" : "batN";
+      playDeadline = now + PLAY_TIMEOUT_MS;
+      pose = {
+        name: side,
+        until: now + BAT_MS,
+        onEnd: () => {
+          const canReach = Math.hypot(body.x - x, body.y - y) < BALL_REACH * 2;
+          if (!canReach) {
+            chaseBall();
+          } else if (batsLeft > 0) {
+            batsLeft -= 1;
+            hitBall();
+            chaseBall();
+          } else {
+            finishThrow(performance.now());
           }
-          endPlay();
-          pose = { name: "scratchSelf", until: now + 1500 };
-          addLove(3);
-          spawnHearts(5);
-          say("That was so fun!");
         },
       };
+    }
+
+    function throwBall(nextX: number, nextY: number) {
+      body.vx = (nextX - body.x) / THROW_SECONDS;
+      body.vy = (nextY - body.y) / THROW_SECONDS;
+      body.vz = THROW_LIFT;
+      const now = performance.now();
+      playDeadline = now + PLAY_TIMEOUT_MS;
+      batsLeft = BATS_PER_THROW;
+      pose = { name: "alert", until: now + NOTICE_MS, onEnd: chaseBall };
+      goal = null;
     }
 
     function visitPhoto(now: number) {
@@ -283,17 +428,14 @@ export default function OnekoCat() {
       },
       feed() {
         closeMenu();
-        const side = x > window.innerWidth / 2 ? -1 : 1;
-        const fishX = clampX(x + side * 140);
-        const fishY = clampY(y);
-        setItem({ kind: "fish", x: fishX, y: fishY });
-        say("Is that for me?!");
-        goal = {
-          x: fishX,
-          y: fishY,
-          onArrive: (now) => {
+        endPlay();
+        setItem({ kind: "fish", x, y: y + MOUTH_OFFSET });
+        say("Nom nom nom...", EAT_MS);
+        pose = {
+          name: "eating",
+          until: performance.now() + EAT_MS,
+          onEnd: () => {
             setItem(null);
-            pose = { name: "scratchSelf", until: now + 1500 };
             addLove(2);
             spawnHearts(5);
             say(pick(FEED_LINES));
@@ -304,7 +446,7 @@ export default function OnekoCat() {
         closeMenu();
         throwsLeft = PLAY_THROWS;
         playDeadline = performance.now() + PLAY_TIMEOUT_MS;
-        setItem({ kind: "ball", x: clampX(x + 56), y: clampY(y) });
+        showBall(clampX(x + 56), clampY(y));
         say("Click anywhere to throw my ball!", 5000);
       },
       toggleSit() {
@@ -394,7 +536,9 @@ export default function OnekoCat() {
           setSprite(pose.name, step);
           return;
         }
+        const { onEnd } = pose;
         pose = null;
+        onEnd?.();
         if (isInviting) stopInviting();
       }
 
@@ -414,6 +558,7 @@ export default function OnekoCat() {
 
       const pointerActive = now - lastPointerAt < POINTER_IDLE_MS;
       if (goal) {
+        goal.track?.();
         targetX = goal.x;
         targetY = goal.y;
       } else if (
@@ -467,6 +612,12 @@ export default function OnekoCat() {
     }
 
     function onAnimationFrame(now: number) {
+      const ball = ballRef.current;
+      if (ball) {
+        stepBall(Math.min((now - lastStepAt) / 1000, MAX_STEP_SECONDS));
+        drawBall(ball);
+      }
+      lastStepAt = now;
       if (now - lastFrameAt > FRAME_MS) {
         lastFrameAt = now;
         frame(now);
@@ -625,6 +776,14 @@ export default function OnekoCat() {
                 Hide
               </Button>
             </div>
+            <a
+              href={ADOPT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md py-1 text-center text-xs font-medium text-primary hover:underline"
+            >
+              Add me to your site
+            </a>
           </div>
         )}
       </div>
@@ -644,12 +803,34 @@ export default function OnekoCat() {
       )}
 
       <div aria-hidden className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
-        {item && (
-          <div
-            className="absolute left-0 top-0 text-primary transition-transform duration-300"
-            style={{ transform: `translate(${item.x - 12}px, ${item.y - 12}px)` }}
+        {item?.kind === "fish" && (
+          <span
+            className="pet-food"
+            style={
+              {
+                "--food-at": `translate(${item.x - 9}px, ${item.y - 7}px)`,
+                transform: `translate(${item.x - 9}px, ${item.y - 7}px)`,
+                animationDuration: `${EAT_MS}ms`,
+              } as React.CSSProperties
+            }
           >
-            {item.kind === "fish" ? <Fish className="size-6" /> : <Volleyball className="size-6" />}
+            🐟
+          </span>
+        )}
+        {item?.kind === "ball" && (
+          <div
+            ref={ballRef}
+            className="pet-ball"
+            style={{
+              width: BALL_SIZE,
+              height: BALL_SIZE,
+              transform: `translate(${item.x - BALL_RADIUS}px, ${item.y - BALL_RADIUS}px)`,
+            }}
+          >
+            <div className="pet-ball-shadow" />
+            <div className="pet-ball-hop">
+              <div className="pet-ball-skin" />
+            </div>
           </div>
         )}
         {hearts.map((heart) => (

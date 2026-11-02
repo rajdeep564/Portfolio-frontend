@@ -127,6 +127,60 @@
   animation: pet-heart 1.1s ease-out;
 }
 
+.pet-food {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 13px;
+  line-height: 1;
+  animation: pet-eat 2s steps(5, end) forwards;
+}
+
+.pet-ball {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.pet-ball-shadow {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.28);
+}
+
+.pet-ball-hop {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 100%;
+}
+
+.pet-ball-hop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.85), transparent 32%);
+  box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.25);
+}
+
+.pet-ball-skin {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#ff5a5f 0 60deg, #ffd23f 0 120deg, #fff 0 180deg, #2ec4b6 0 240deg, #4d7cfe 0 300deg, #ff9f1c 0);
+}
+
+@keyframes pet-eat {
+  to {
+    transform: var(--food-at) scale(0.15);
+    opacity: 0.4;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
