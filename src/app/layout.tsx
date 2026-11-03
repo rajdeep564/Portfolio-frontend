@@ -1,6 +1,8 @@
+import LaserCursor from "@/components/laser-cursor";
 import Navbar from "@/components/navbar";
 import OnekoCat from "@/components/oneko-cat";
 import StructuredData from "@/components/structured-data";
+import TabNap from "@/components/tab-nap";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DATA } from "@/data/resume";
@@ -104,6 +106,8 @@ export default function RootLayout({
             </div>
             <Navbar />
             <OnekoCat />
+            <LaserCursor />
+            <TabNap />
           </TooltipProvider>
         </ThemeProvider>
       </body>
