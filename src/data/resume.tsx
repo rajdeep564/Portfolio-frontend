@@ -51,7 +51,7 @@ export const DATA = {
     ],
   },
   summary:
-    "I'm a Full Stack Developer with 1+ year of hands-on experience building scalable MERN stack and Node.js backend systems, RESTful APIs, and production-grade GenAI platforms. I architect microservices, integrate third-party AI providers, and deliver end-to-end features from database design to cloud deployment, with a strong record of optimizing performance and shipping reliable software across GenAI, enterprise ERP, and regulated QMS domains. I also design and build websites for clients, handle their SEO and digital marketing, and am a partner at Spaciva AI.",
+    "I'm a Full Stack Developer with 2+ years of hands-on experience building scalable MERN stack and Node.js backend systems, RESTful APIs, and production-grade GenAI platforms. I architect microservices, integrate third-party AI providers, and deliver end-to-end features from database design to cloud deployment, with a strong record of optimizing performance and shipping reliable software across GenAI, enterprise ERP, and regulated QMS domains. I also design and build websites for clients, handle their SEO and digital marketing, and am a partner at Spaciva AI.",
   avatarUrl: "/me.jpg",
   skills: [
     {
