@@ -11,9 +11,9 @@ const BackgroundCubesGrid = dynamic(
   { ssr: false }
 );
 
-const GLOW_COLOR = "#0f9488";
-const DARK_FACES = { topColor: "#111111", leftColor: "#1c1c1c", rightColor: "#262626" };
-const LIGHT_FACES = { topColor: "#ffffff", leftColor: "#f0f0f0", rightColor: "#e5e5e5" };
+const GLOW_COLOR = "#4a8c3a";
+const DARK_FACES = { topColor: "#121827", leftColor: "#1a2132", rightColor: "#222a3d" };
+const LIGHT_FACES = { topColor: "#fdfefb", leftColor: "#f1f4ec", rightColor: "#e6ebdf" };
 
 export default function ContactCubes() {
   const containerRef = useRef<HTMLDivElement>(null);
