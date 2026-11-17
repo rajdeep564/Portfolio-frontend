@@ -39,7 +39,7 @@ const WALL_BOUNCE = 0.6;
 const THROW_LIFT = 430;
 const THROW_SECONDS = 1.15;
 const MAX_STEP_SECONDS = 0.033;
-const ADOPT_URL = "https://rajdeep564.github.io/wandering-mochi/#adopt";
+const ADOPT_URL = "https://mochi.is-a.bot/#adopt";
 
 const SPRITES: Record<string, [number, number][]> = {
   idle: [[-3, -3]],
